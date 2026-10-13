@@ -1,0 +1,115 @@
+from odoo import models, fields, api
+
+
+class SaleOrderLine(models.Model):
+    _inherit = 'sale.order.line'
+
+    product_default_code = fields.Char(
+        string='Internal Reference',
+        related='product_id.default_code',
+        readonly=True,
+    )
+    product_ref_id = fields.Many2one(
+        'product.product',
+        string='Internal Reference',
+        compute='_compute_product_ref_id',
+        inverse='_inverse_product_ref_id',
+        readonly=False,
+        store=False,
+    )
+    product_description = fields.Char(
+        string='Description',
+        related='product_id.name',
+        readonly=True,
+    )
+    location_id = fields.Many2one(
+        'stock.location',
+        string='Location',
+    )
+    unit_quantity = fields.Float(
+        string='Unit Quantity',
+        compute='_compute_unit_quantity',
+        store=False,
+        readonly=True,
+    )
+    fixed_amount = fields.Float(
+        string='Fixed Amount',
+        digits='Product Price',
+    )
+    discount_mode = fields.Selection(
+        [('percent', 'Percent'), ('amount', 'Amount')],
+        string='Discount Mode',
+        copy=True,
+    )
+
+    @api.depends('product_id')
+    def _compute_product_ref_id(self):
+        for line in self:
+            line.product_ref_id = line.product_id
+
+    def _inverse_product_ref_id(self):
+        for line in self:
+            if line.product_ref_id and line.product_id != line.product_ref_id:
+                line.product_id = line.product_ref_id
+
+    @api.onchange('product_ref_id')
+    def _onchange_product_ref_id(self):
+        for line in self:
+            if line.product_ref_id and line.product_id != line.product_ref_id:
+                line.product_id = line.product_ref_id
+
+    @api.depends('product_id', 'linked_line_id', 'linked_line_ids')
+    def _compute_name(self):
+        # Description me product ka naam aaye, sirf code nahi
+        return super(SaleOrderLine, self.with_context(internal_ref_search=False))._compute_name()
+
+    @api.depends('product_id', 'product_uom_qty', 'product_uom_id')
+    def _compute_unit_quantity(self):
+        for line in self:
+            line.unit_quantity = 0.0
+            product = line.product_id
+            if not product:
+                continue
+            try:
+                qty = line.product_uom_qty or 0.0
+                uom = line.product_uom_id
+                factor = uom.factor or 0.0 if uom else 0.0
+                if factor:
+                    line.unit_quantity = qty * factor
+                else:
+                    if product.packaging_ids:
+                        line.unit_quantity = product.packaging_ids[0].qty
+                    elif product.product_tmpl_id.packaging_ids:
+                        line.unit_quantity = product.product_tmpl_id.packaging_ids[0].qty
+            except Exception:
+                line.unit_quantity = 0.0
+
+    @api.onchange('discount')
+    def _onchange_discount_set_fixed(self):
+        for line in self:
+            if line.discount_mode == 'amount':
+                continue
+            line.discount_mode = 'percent' if line.discount else False
+            line.fixed_amount = (line.price_unit or 0.0) * (line.discount or 0.0) / 100.0
+
+    @api.onchange('fixed_amount')
+    def _onchange_fixed_amount_set_discount(self):
+        for line in self:
+            if line.discount_mode == 'percent':
+                continue
+            if line.fixed_amount:
+                line.discount_mode = 'amount'
+                price = line.price_unit or 0.0
+                line.discount = min(line.fixed_amount / price * 100.0, 100.0) if price else 0.0
+            else:
+                line.discount_mode = False
+                line.discount = 0.0
+
+    @api.onchange('price_unit')
+    def _onchange_price_unit_sync_discount(self):
+        for line in self:
+            price = line.price_unit or 0.0
+            if line.discount_mode == 'amount':
+                line.discount = min((line.fixed_amount or 0.0) / price * 100.0, 100.0) if price else 0.0
+            else:
+                line.fixed_amount = price * (line.discount or 0.0) / 100.0

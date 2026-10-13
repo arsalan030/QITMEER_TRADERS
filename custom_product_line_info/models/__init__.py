@@ -1,0 +1,12 @@
+from . import account_move_line
+from . import purchase_order_line
+from . import sales_validation
+from . import stock_move
+from . import sale_order_line
+from . import sale_order
+from . import product_supplierinfo
+from . import multi_supplierinfo
+from . import due_date_email_invoice
+# from . import product_default_code
+from . import product_product
+from . import product_template
