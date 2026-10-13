@@ -1,6 +1,6 @@
 {
     'name': 'Custom Product Line Info',
-    'version': '19.0.1.0.0',
+    'version': '20.0.1.0.0',
     'category': 'Sales/Inventory',
     'summary': 'Add Internal Reference and Description to all document lines',
     'depends': ['sale', 'purchase', 'stock', 'account'],
@@ -18,4 +18,5 @@
     'installable': True,
     'application': False,
     'auto_install': False,
+    'license': 'LGPL-3',
 }
