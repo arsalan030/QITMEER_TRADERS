@@ -5,7 +5,7 @@ class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
 
     product_default_code = fields.Char(
-        string='Internal Reference',
+        string='Internal Code',
         related='product_id.default_code',
         readonly=True
     )
@@ -18,7 +18,7 @@ class AccountMoveLine(models.Model):
         store=False,
     )
     product_description = fields.Text(
-        string='Description',
+        string='Product Description',
         related='name',
         readonly=True
     )
@@ -53,7 +53,6 @@ class AccountMoveLine(models.Model):
     def _compute_name(self):
         return super(AccountMoveLine, self.with_context(internal_ref_search=False))._compute_name()
 
-    # NO @api.depends — store=False field
     def _compute_unit_quantity(self):
         uom_field = (
             'product_uom_id' if 'product_uom_id' in self._fields

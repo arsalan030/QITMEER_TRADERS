@@ -5,7 +5,7 @@ class StockMove(models.Model):
     _inherit = 'stock.move'
 
     product_default_code = fields.Char(
-        string='Internal Reference',
+        string='Internal Code',
         related='product_id.default_code',
         readonly=True,
     )
@@ -18,8 +18,9 @@ class StockMove(models.Model):
         store=False,
     )
     product_description = fields.Text(
-        string='Description',
-        related='description_picking',
+        string='Product Description',
+        compute='_compute_product_description',
+        store=False,
         readonly=True,
     )
     location_id = fields.Many2one(
@@ -35,19 +36,16 @@ class StockMove(models.Model):
     product_amount = fields.Float(
         string='Product Amount',
         compute='_compute_product_amount',
-        digits='Product Price',
         store=False,
         readonly=True,
     )
     price_unit = fields.Float(
         string='Unit Price',
-        digits='Product Price',
         default=0.0,
     )
     total_amount = fields.Float(
         string='Total Amount',
         compute='_compute_total_amount',
-        digits='Product Price',
         store=False,
         readonly=True,
     )
@@ -68,12 +66,19 @@ class StockMove(models.Model):
             if move.product_ref_id and move.product_id != move.product_ref_id:
                 move.product_id = move.product_ref_id
 
+    def _compute_product_description(self):
+        for move in self:
+            desc = ''
+            if 'description_picking' in move._fields:
+                desc = move.description_picking or ''
+            if not desc and move.product_id:
+                desc = move.product_id.name or ''
+            move.product_description = desc or ''
+
     @api.depends('product_id', 'picking_type_id')
     def _compute_description_picking(self):
         return super(StockMove, self.with_context(internal_ref_search=False))._compute_description_picking()
 
-    # NO @api.depends — store=False field, recomputed on read.
-    # Works on any Odoo version regardless of UoM field name.
     def _compute_unit_quantity(self):
         uom_field = (
             'product_uom_id' if 'product_uom_id' in self._fields

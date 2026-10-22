@@ -6,39 +6,28 @@
         <field name="inherit_id" ref="stock.view_picking_form"/>
         <field name="arch" type="xml">
 
-            <!-- 1. Product_id ke context aur options update karein, aur column hide -->
-            <xpath expr="//field[@name='move_ids']/list/field[@name='product_id']" position="attributes">
-                <attribute name="context">{'display_default_code': False}</attribute>
-                <attribute name="options">{'display_description': False}</attribute>
+            <!-- Product_id column hide (koi bhi depth me) -->
+            <xpath expr="//field[@name='move_ids']//field[@name='product_id']" position="attributes">
                 <attribute name="column_invisible">1</attribute>
             </xpath>
 
-            <!-- 2. Description_picking column ko sirf Receipt (incoming) par hide karein -->
-            <xpath expr="//field[@name='move_ids']/list/field[@name='description_picking']" position="attributes">
-                <attribute name="column_invisible">parent.picking_type_code == 'incoming'</attribute>
-            </xpath>
-
-            <!-- 3. Product_id ke baad Internal Ref (searchable) aur Description -->
-            <xpath expr="//field[@name='move_ids']/list/field[@name='product_id']" position="after">
+            <!-- product_id ke baad product_ref_id + product_description add karo -->
+            <xpath expr="//field[@name='move_ids']//field[@name='product_id']" position="after">
                 <field name="product_ref_id" optional="show"
                        context="{'internal_ref_search': True}"
                        options="{'no_create': True, 'no_open': True}"
                        readonly="parent.state in ('done', 'cancel')"/>
+            </xpath>
+
+            <!-- description_picking ke baad product_description add karo -->
+            <xpath expr="//field[@name='move_ids']//field[@name='description_picking']" position="after">
                 <field name="product_description" optional="show"/>
             </xpath>
 
-            <!-- 4. Baaki fields -->
-            <xpath expr="//field[@name='move_ids']/list/field[@name='product_uom_qty']" position="after">
+            <!-- product_uom_qty ke baad location_id + unit_quantity add karo -->
+            <xpath expr="//field[@name='move_ids']//field[@name='product_uom_qty']" position="after">
                 <field name="location_id" optional="show" domain="[]" options="{'no_create': True, 'no_open': True}"/>
                 <field name="unit_quantity" optional="show" readonly="1"/>
-
-                <!-- Sirf Receipt (incoming) par Product Amount -->
-                <field name="product_amount" optional="show" readonly="1" column_invisible="parent.picking_type_code != 'incoming'"/>
-
-                <!-- Sirf Delivery (outgoing) par Unit Price -->
-                <field name="price_unit" optional="show" readonly="1" column_invisible="parent.picking_type_code != 'outgoing'"/>
-
-                <!-- Total Amount column hata diya gaya hai -->
             </xpath>
 
         </field>

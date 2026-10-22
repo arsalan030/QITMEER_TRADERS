@@ -5,7 +5,7 @@ class PurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
 
     product_default_code = fields.Char(
-        string='Internal Reference',
+        string='Internal Code',
         compute='_compute_product_default_code',
         inverse='_inverse_product_default_code',
         store=True,
@@ -20,7 +20,7 @@ class PurchaseOrderLine(models.Model):
         store=False,
     )
     product_description = fields.Text(
-        string='Description',
+        string='Product Description',
         related='name',
         readonly=True,
     )

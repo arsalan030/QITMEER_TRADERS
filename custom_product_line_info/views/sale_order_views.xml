@@ -6,27 +6,26 @@
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
 
-            <!-- Product column hide -->
-            <xpath expr="//field[@name='order_line']/list/field[@name='product_template_id']" position="attributes">
-                <attribute name="context">{'default_list_price': price_unit, 'default_uom_id': product_uom_id, 'partner_id': parent.partner_id, 'display_default_code': False}</attribute>
+            <!-- Product Variant column hide (column ke andar field) -->
+            <xpath expr="//field[@name='order_line']/list/column[@name='product_and_description']/field[@name='product_id']" position="attributes">
                 <attribute name="column_invisible">1</attribute>
             </xpath>
 
-            <!-- Standard 'name' column hide karein -->
-            <xpath expr="//field[@name='order_line']/list/field[@name='name']" position="attributes">
+            <!-- Standard 'name' column hide karein (column ke andar) -->
+            <xpath expr="//field[@name='order_line']/list/column[@name='product_and_description']/field[@name='name']" position="attributes">
                 <attribute name="column_invisible">1</attribute>
             </xpath>
 
-            <!-- Product_template_id ke baad Internal Ref (searchable) aur Description -->
-            <xpath expr="//field[@name='order_line']/list/field[@name='product_template_id']" position="after">
+            <!-- product_id ke baad Internal Ref (searchable) aur Description -->
+            <xpath expr="//field[@name='order_line']/list/column[@name='product_and_description']/field[@name='product_id']" position="after">
                 <field name="product_ref_id" optional="show"
                        context="{'internal_ref_search': True}"
                        options="{'no_create': True, 'no_open': True}"/>
                 <field name="product_description" optional="show"/>
             </xpath>
 
-            <!-- Location aur Unit Quantity add karein -->
-            <xpath expr="//field[@name='order_line']/list/field[@name='product_uom_qty']" position="after">
+            <!-- Location aur Unit Quantity add karein — sol_qty column ke andar product_uom_qty ke baad -->
+            <xpath expr="//field[@name='order_line']/list/column[@name='sol_qty']/field[@name='product_uom_qty']" position="after">
                 <field name="location_id" optional="show" domain="[]" options="{'no_create': True, 'no_open': True}"/>
                 <field name="unit_quantity" optional="show" readonly="1"/>
             </xpath>

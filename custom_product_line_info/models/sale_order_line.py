@@ -5,7 +5,7 @@ class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
     product_default_code = fields.Char(
-        string='Internal Reference',
+        string='Internal Code',
         related='product_id.default_code',
         readonly=True,
     )
@@ -18,7 +18,7 @@ class SaleOrderLine(models.Model):
         store=False,
     )
     product_description = fields.Char(
-        string='Description',
+        string='Product Description',
         related='product_id.name',
         readonly=True,
     )
@@ -62,7 +62,6 @@ class SaleOrderLine(models.Model):
     def _compute_name(self):
         return super(SaleOrderLine, self.with_context(internal_ref_search=False))._compute_name()
 
-    # NO @api.depends — store=False field
     def _compute_unit_quantity(self):
         uom_field = (
             'product_uom_id' if 'product_uom_id' in self._fields
