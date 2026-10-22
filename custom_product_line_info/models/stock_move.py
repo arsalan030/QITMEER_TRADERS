@@ -73,7 +73,8 @@ class StockMove(models.Model):
         # Description me product ka naam aaye, sirf code nahi
         return super(StockMove, self.with_context(internal_ref_search=False))._compute_description_picking()
 
-    @api.depends('product_id', 'product_uom_qty', 'product_uom')
+    # ✅ FIX: product_uom → product_uom_id
+    @api.depends('product_id', 'product_uom_qty', 'product_uom_id')
     def _compute_unit_quantity(self):
         for line in self:
             line.unit_quantity = 0.0
@@ -82,7 +83,7 @@ class StockMove(models.Model):
                 continue
             try:
                 qty = line.product_uom_qty or 0.0
-                uom = line.product_uom
+                uom = line.product_uom_id          # ✅ FIXED
                 factor = uom.factor or 0.0 if uom else 0.0
                 if factor:
                     line.unit_quantity = qty * factor
