@@ -68,14 +68,17 @@ class StockMove(models.Model):
             if move.product_ref_id and move.product_id != move.product_ref_id:
                 move.product_id = move.product_ref_id
 
-    @api.depends('product_id', 'picking_type_id', 'description_picking_manual')
+    @api.depends('product_id', 'picking_type_id')
     def _compute_description_picking(self):
-        # Description me product ka naam aaye, sirf code nahi
         return super(StockMove, self.with_context(internal_ref_search=False))._compute_description_picking()
 
-    # ✅ FIX: product_uom → product_uom_id
-    @api.depends('product_id', 'product_uom_qty', 'product_uom_id')
+    # NO @api.depends — store=False field, recomputed on read.
+    # Works on any Odoo version regardless of UoM field name.
     def _compute_unit_quantity(self):
+        uom_field = (
+            'product_uom_id' if 'product_uom_id' in self._fields
+            else 'product_uom'
+        )
         for line in self:
             line.unit_quantity = 0.0
             product = line.product_id
@@ -83,7 +86,7 @@ class StockMove(models.Model):
                 continue
             try:
                 qty = line.product_uom_qty or 0.0
-                uom = line.product_uom_id          # ✅ FIXED
+                uom = line[uom_field] if uom_field in line._fields else None
                 factor = uom.factor or 0.0 if uom else 0.0
                 if factor:
                     line.unit_quantity = qty * factor

@@ -86,8 +86,12 @@ class PurchaseOrderLine(models.Model):
                 if product:
                     line.product_id = product
 
-    @api.depends('product_id', 'product_qty', 'product_uom_id')
+    # NO @api.depends — store=False field
     def _compute_unit_quantity(self):
+        uom_field = (
+            'product_uom_id' if 'product_uom_id' in self._fields
+            else 'product_uom'
+        )
         for line in self:
             line.unit_quantity = 0.0
             product = line.product_id
@@ -95,7 +99,7 @@ class PurchaseOrderLine(models.Model):
                 continue
             try:
                 qty = line.product_qty or 0.0
-                uom = line.product_uom_id
+                uom = line[uom_field] if uom_field in line._fields else None
                 factor = uom.factor or 0.0 if uom else 0.0
                 if factor:
                     line.unit_quantity = qty * factor
@@ -150,7 +154,7 @@ class PurchaseOrderLine(models.Model):
                 if line.price_unit:
                     line.fixed_amount = (line.price_unit or 0.0) * (supplierinfo.discount or 0.0) / 100.0
 
-    @api.depends('product_id', 'product_qty', 'product_uom_id', 'partner_id',
+    @api.depends('product_id', 'product_qty', 'partner_id',
                  'order_id.partner_id', 'order_id.currency_id', 'company_id',
                  'date_order', 'order_id.date_order')
     def _compute_price_unit_and_date_planned_and_name(self):
@@ -162,7 +166,6 @@ class PurchaseOrderLine(models.Model):
             if supplierinfo:
                 if supplierinfo.price:
                     line.price_unit = supplierinfo.price
-        # Description me product ka naam aaye, sirf code nahi
         super(PurchaseOrderLine, self.with_context(
             internal_ref_search=False
         ))._compute_price_unit_and_date_planned_and_name()

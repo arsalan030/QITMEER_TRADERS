@@ -17,7 +17,6 @@ class SaleOrderLine(models.Model):
         readonly=False,
         store=False,
     )
-    # ✅ FIX: type must match product.product.name (Char), not Text
     product_description = fields.Char(
         string='Description',
         related='product_id.name',
@@ -63,8 +62,12 @@ class SaleOrderLine(models.Model):
     def _compute_name(self):
         return super(SaleOrderLine, self.with_context(internal_ref_search=False))._compute_name()
 
-    @api.depends('product_id', 'product_uom_qty', 'product_uom_id')
+    # NO @api.depends — store=False field
     def _compute_unit_quantity(self):
+        uom_field = (
+            'product_uom_id' if 'product_uom_id' in self._fields
+            else 'product_uom'
+        )
         for line in self:
             line.unit_quantity = 0.0
             product = line.product_id
@@ -72,7 +75,7 @@ class SaleOrderLine(models.Model):
                 continue
             try:
                 qty = line.product_uom_qty or 0.0
-                uom = line.product_uom_id
+                uom = line[uom_field] if uom_field in line._fields else None
                 factor = uom.factor or 0.0 if uom else 0.0
                 if factor:
                     line.unit_quantity = qty * factor

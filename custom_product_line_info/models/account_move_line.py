@@ -51,11 +51,14 @@ class AccountMoveLine(models.Model):
 
     @api.depends('product_id', 'move_id.ref', 'move_id.payment_reference')
     def _compute_name(self):
-        # Description me product ka naam aaye, sirf code nahi
         return super(AccountMoveLine, self.with_context(internal_ref_search=False))._compute_name()
 
-    @api.depends('product_id', 'quantity', 'product_uom_id')
+    # NO @api.depends — store=False field
     def _compute_unit_quantity(self):
+        uom_field = (
+            'product_uom_id' if 'product_uom_id' in self._fields
+            else 'product_uom'
+        )
         for line in self:
             line.unit_quantity = 0.0
             product = line.product_id
@@ -63,7 +66,7 @@ class AccountMoveLine(models.Model):
                 continue
             try:
                 qty = line.quantity or 0.0
-                uom = line.product_uom_id
+                uom = line[uom_field] if uom_field in line._fields else None
                 factor = uom.factor or 0.0 if uom else 0.0
                 if factor:
                     line.unit_quantity = qty * factor
