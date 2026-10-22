@@ -17,7 +17,7 @@ class SaleOrderLine(models.Model):
         readonly=False,
         store=False,
     )
-    product_description = fields.Char(
+    product_description = fields.Text(
         string='Description',
         related='product_id.name',
         readonly=True,

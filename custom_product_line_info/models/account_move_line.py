@@ -17,7 +17,7 @@ class AccountMoveLine(models.Model):
         readonly=False,
         store=False,
     )
-    product_description = fields.Char(
+    product_description = fields.Text(
         string='Description',
         related='name',
         readonly=True
