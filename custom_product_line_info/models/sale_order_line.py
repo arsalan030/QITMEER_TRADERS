@@ -17,7 +17,8 @@ class SaleOrderLine(models.Model):
         readonly=False,
         store=False,
     )
-    product_description = fields.Text(
+    # ✅ FIX: type must match product.product.name (Char), not Text
+    product_description = fields.Char(
         string='Description',
         related='product_id.name',
         readonly=True,
@@ -60,7 +61,6 @@ class SaleOrderLine(models.Model):
 
     @api.depends('product_id', 'linked_line_id', 'linked_line_ids')
     def _compute_name(self):
-        # Description me product ka naam aaye, sirf code nahi
         return super(SaleOrderLine, self.with_context(internal_ref_search=False))._compute_name()
 
     @api.depends('product_id', 'product_uom_qty', 'product_uom_id')
