@@ -6,9 +6,9 @@
         <field name="inherit_id" ref="stock.view_picking_form"/>
         <field name="arch" type="xml">
 
-            <!-- Product_id column hide (koi bhi depth me) -->
+            <!-- Product_id hide (Odoo 20: column ke andar 'invisible' use hota hai, column_invisible nahi) -->
             <xpath expr="//field[@name='move_ids']//field[@name='product_id']" position="attributes">
-                <attribute name="column_invisible">1</attribute>
+                <attribute name="invisible">1</attribute>
             </xpath>
 
             <!-- product_id ke baad product_ref_id + product_description add karo -->

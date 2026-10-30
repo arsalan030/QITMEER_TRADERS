@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from odoo.tools import html2plaintext
 
 
 class SaleOrderLine(models.Model):
@@ -17,9 +18,9 @@ class SaleOrderLine(models.Model):
         readonly=False,
         store=False,
     )
-    product_description = fields.Char(
+    product_description = fields.Text(
         string='Product Description',
-        related='product_id.name',
+        related='name',
         readonly=True,
     )
     location_id = fields.Many2one(
@@ -58,9 +59,27 @@ class SaleOrderLine(models.Model):
             if line.product_ref_id and line.product_id != line.product_ref_id:
                 line.product_id = line.product_ref_id
 
+    @api.onchange('product_id')
+    def _onchange_product_id_set_internal_notes(self):
+        # Jab search se product select ho, to Notes set ho jayen
+        for line in self:
+            if line.product_id:
+                note = html2plaintext(line.product_id.description or '').strip()
+                if note:
+                    line.name = note
+                else:
+                    line.name = line.product_id.name or ''
+
     @api.depends('product_id', 'linked_line_id', 'linked_line_ids')
     def _compute_name(self):
-        return super(SaleOrderLine, self.with_context(internal_ref_search=False))._compute_name()
+        res = super(SaleOrderLine, self.with_context(internal_ref_search=False))._compute_name()
+        for line in self:
+            if not line.product_id:
+                continue
+            note = html2plaintext(line.product_id.description or '').strip()
+            if note:
+                line.name = note
+        return res
 
     def _compute_unit_quantity(self):
         uom_field = (

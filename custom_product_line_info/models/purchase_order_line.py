@@ -1,29 +1,31 @@
 from odoo import models, fields, api
+from odoo.orm.decorators import readonly
+from odoo.tools import html2plaintext
 
 
 class PurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
 
-    product_default_code = fields.Char(
-        string='Internal Code',
-        compute='_compute_product_default_code',
-        inverse='_inverse_product_default_code',
-        store=True,
-        readonly=False,
-    )
-    product_ref_id = fields.Many2one(
-        'product.product',
-        string='Internal Reference',
-        compute='_compute_product_ref_id',
-        inverse='_inverse_product_ref_id',
-        readonly=False,
-        store=False,
-    )
-    product_description = fields.Text(
-        string='Product Description',
-        related='name',
-        readonly=True,
-    )
+    # product_default_code = fields.Char(
+    #     string='Internal Code',
+    #     compute='_compute_product_default_code',
+    #     inverse='_inverse_product_default_code',
+    #     store=True,
+    #     readonly=False,
+    # )
+    # product_ref_id = fields.Many2one(
+    #     'product.product',
+    #     string='Internal Reference',
+    #     compute='_compute_product_ref_id',
+    #     inverse='_inverse_product_ref_id',
+    #     readonly=False,
+    #     store=False,
+    # )
+    # product_description = fields.Text(
+    #     string='Product Description',
+    #     related='name',
+    #     readonly=True,
+    # )
     location_id = fields.Many2one(
         'stock.location',
         string='Location',
@@ -43,16 +45,20 @@ class PurchaseOrderLine(models.Model):
         string='Discount Mode',
         copy=True,
     )
+    description = fields.Text(compute='_compute_description')
 
     @api.depends('product_id')
-    def _compute_product_ref_id(self):
+    def _compute_description(self):
         for line in self:
-            line.product_ref_id = line.product_id
+            if line.product_id:
+                line.description = html2plaintext(line.product_id.description or '')
+            else:
+                line.description = False
 
-    def _inverse_product_ref_id(self):
-        for line in self:
-            if line.product_ref_id and line.product_id != line.product_ref_id:
-                line.product_id = line.product_ref_id
+    # def _inverse_product_ref_id(self):
+    #     for line in self:
+    #         if line.product_ref_id and line.product_id != line.product_ref_id:
+    #             line.product_id = line.product_ref_id
 
     @api.onchange('product_ref_id')
     def _onchange_product_ref_id(self):
@@ -86,7 +92,6 @@ class PurchaseOrderLine(models.Model):
                 if product:
                     line.product_id = product
 
-    # NO @api.depends — store=False field
     def _compute_unit_quantity(self):
         uom_field = (
             'product_uom_id' if 'product_uom_id' in self._fields
@@ -166,9 +171,19 @@ class PurchaseOrderLine(models.Model):
             if supplierinfo:
                 if supplierinfo.price:
                     line.price_unit = supplierinfo.price
-        super(PurchaseOrderLine, self.with_context(
+        return super(PurchaseOrderLine, self.with_context(
             internal_ref_search=False
         ))._compute_price_unit_and_date_planned_and_name()
+
+    @api.onchange('product_id')
+    def _onchange_product_id_set_internal_notes(self):
+        for line in self:
+            if line.product_id:
+                note = html2plaintext(line.product_id.description or '').strip()
+                if note:
+                    line.name = note
+                else:
+                    line.name = line.product_id.name or ''
 
     @api.onchange('discount')
     def _onchange_discount_set_fixed(self):

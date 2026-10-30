@@ -9,3 +9,4 @@ from . import multi_supplierinfo
 from . import due_date_email_invoice
 from . import product_product
 from . import product_template
+from . import internal_ref_note

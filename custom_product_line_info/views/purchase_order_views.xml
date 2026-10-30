@@ -6,27 +6,29 @@
         <field name="inherit_id" ref="purchase.purchase_order_form"/>
         <field name="arch" type="xml">
 
-            <!-- Product column hide (product_and_description column ke andar) -->
-            <xpath expr="//field[@name='order_line']/list/column[@name='product_and_description']/field[@name='product_id']" position="attributes">
-                <attribute name="context">{'partner_id': partner_id, 'quantity': product_qty, 'company_id': parent.company_id, 'display_default_code': False}</attribute>
-                <attribute name="column_invisible">1</attribute>
+            <!-- Standard 'name' sirf Section/Note lines ke liye -->
+            <xpath expr="//field[@name='order_line']/list/column[@name='product_and_description']/field[@name='name']" position="replace">
+                <field name="description"/>
             </xpath>
 
-            <!-- Standard 'name' column hide (product_and_description column ke andar) -->
-            <xpath expr="//field[@name='order_line']/list/column[@name='product_and_description']/field[@name='name']" position="attributes">
-                <attribute name="column_invisible">1</attribute>
-            </xpath>
+            <!-- Label hide (taake default mein sirf naam dikhe) -->
+<!--            <xpath expr="//field[@name='order_line']/list/column[@name='product_and_description']/field[@name='label']" position="attributes">-->
+<!--                <attribute name="invisible">1</attribute>-->
+<!--            </xpath>-->
 
-            <!-- product_id ke baad Internal Ref (searchable) aur Description -->
-            <xpath expr="//field[@name='order_line']/list/column[@name='product_and_description']/field[@name='product_id']" position="after">
-                <field name="product_ref_id" optional="show"
-                       context="{'internal_ref_search': True}"
-                       options="{'no_create': True, 'no_open': True}"
-                       readonly="parent.state in ('purchase', 'done', 'cancel')"/>
-                <field name="product_description" optional="show"/>
-            </xpath>
+            <!-- Original Product ID ko visible karein (Search yahan se hogi) -->
+<!--            <xpath expr="//field[@name='order_line']/list/column[@name='product_and_description']/field[@name='product_id']" position="attributes">-->
+<!--                <attribute name="context">{'partner_id': partner_id, 'quantity': product_qty, 'company_id': parent.company_id, 'display_default_code': False}</attribute>-->
+<!--                <attribute name="invisible">display_type</attribute>-->
+<!--                <attribute name="optional">show</attribute>-->
+<!--            </xpath>-->
 
-            <!-- Location aur Unit Quantity add karein (product_qty ke baad) -->
+            <!-- product_id ke baad Notes add karein -->
+<!--            <xpath expr="//field[@name='order_line']/list/column[@name='product_and_description']/field[@name='product_id']" position="after">-->
+<!--                <field name="product_description" optional="show" invisible="display_type"/>-->
+<!--            </xpath>-->
+
+            <!-- Location aur Unit Quantity add karein -->
             <xpath expr="//field[@name='order_line']/list/field[@name='product_qty']" position="after">
                 <field name="location_id" optional="show" domain="[]" options="{'no_create': True, 'no_open': True}"/>
                 <field name="unit_quantity" optional="show" readonly="1"/>
