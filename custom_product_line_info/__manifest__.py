@@ -3,7 +3,7 @@
     'version': '20.0.1.0.0',
     'category': 'Sales/Inventory',
     'summary': 'Add Internal Reference and Description to all document lines',
-    'depends': ['sale', 'purchase', 'stock', 'account', 'mail'],
+    'depends': ['sale', 'purchase', 'stock', 'account', 'mail','sale_management', 'sale_stock', ],
     'data': [
 
         'views/sale_order_views.xml',
