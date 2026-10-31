@@ -55,27 +55,6 @@ class PurchaseOrderLine(models.Model):
             else:
                 line.description = False
 
-    @api.depends(
-        'product_id', 'product_id.uom_id', 'product_id.uom_id.category_id',
-        'product_id.uom_ids', 'product_id.extra_uom_ids',
-        'product_id.seller_ids', 'product_id.seller_ids.uom_id',
-    )
-    def _compute_allowed_uom_ids(self):
-        super()._compute_allowed_uom_ids()
-        categories = self.mapped('product_id.uom_id.category_id')
-        uoms_by_category = {
-            category.id: self.env['uom.uom'].search([
-                ('category_id', '=', category.id),
-            ])
-            for category in categories
-        }
-        for line in self:
-            if line.product_id:
-                line.allowed_uom_ids |= uoms_by_category.get(
-                    line.product_id.uom_id.category_id.id,
-                    self.env['uom.uom'],
-                )
-
     # def _inverse_product_ref_id(self):
     #     for line in self:
     #         if line.product_ref_id and line.product_id != line.product_ref_id:
