@@ -6,9 +6,21 @@
         <field name="inherit_id" ref="purchase.purchase_order_form"/>
         <field name="arch" type="xml">
 
-            <!-- Standard 'name' sirf Section/Note lines ke liye -->
-            <xpath expr="//field[@name='order_line']/list/column[@name='product_and_description']/field[@name='name']" position="replace">
-                <field name="description"/>
+            <!-- Product name stays on the product field; description appears below it. -->
+            <xpath expr="//field[@name='order_line']/list/column[@name='product_and_description']/field[@name='name']" position="attributes">
+                <attribute name="invisible">not display_type</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='order_line']/list/column[@name='product_and_description']/field[@name='product_id']" position="attributes">
+                <attribute name="context">{'partner_id': partner_id, 'quantity': product_qty, 'company_id': parent.company_id, 'display_default_code': True}</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='order_line']/list/column[@name='product_and_description']/field[@name='product_id']" position="after">
+                <field name="description" optional="show" invisible="display_type"/>
+            </xpath>
+
+            <xpath expr="//field[@name='order_line']/list/field[@name='uom_id']" position="attributes">
+                <attribute name="domain">[]</attribute>
             </xpath>
 
             <!-- Label hide (taake default mein sirf naam dikhe) -->
