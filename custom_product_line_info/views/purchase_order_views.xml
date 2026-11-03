@@ -41,9 +41,12 @@
 <!--            </xpath>-->
 
             <!-- Location aur Unit Quantity add karein -->
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_qty']" position="attributes">
+                <attribute name="string">Unit Quantity</attribute>
+            </xpath>
+
             <xpath expr="//field[@name='order_line']/list/field[@name='product_qty']" position="after">
                 <field name="location_id" optional="show" domain="[]" options="{'no_create': True, 'no_open': True}"/>
-                <field name="unit_quantity" optional="show" readonly="1"/>
             </xpath>
 
             <!-- Discount readonly in amount mode -->
