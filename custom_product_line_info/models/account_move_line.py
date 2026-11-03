@@ -40,14 +40,15 @@ class AccountMoveLine(models.Model):
 
     def _inverse_product_ref_id(self):
         for line in self:
-            if line.product_ref_id and line.product_id != line.product_ref_id:
+            if line.product_id != line.product_ref_id:
                 line.product_id = line.product_ref_id
 
     @api.onchange('product_ref_id')
     def _onchange_product_ref_id(self):
         for line in self:
-            if line.product_ref_id and line.product_id != line.product_ref_id:
+            if line.product_id != line.product_ref_id:
                 line.product_id = line.product_ref_id
+                line._inverse_product_id()
 
     @api.depends('product_id', 'move_id.ref', 'move_id.payment_reference')
     def _compute_name(self):
