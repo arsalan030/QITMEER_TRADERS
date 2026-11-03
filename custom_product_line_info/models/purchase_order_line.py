@@ -185,6 +185,12 @@ class PurchaseOrderLine(models.Model):
                 else:
                     line.name = line.product_id.name or ''
 
+    @api.onchange('product_qty')
+    def _onchange_product_qty_update_price(self):
+        for line in self:
+            if line.product_id and line.uom_id:
+                line.price_unit = line.technical_price_unit * max(line.product_qty, 1)
+
     @api.onchange('discount')
     def _onchange_discount_set_fixed(self):
         for line in self:

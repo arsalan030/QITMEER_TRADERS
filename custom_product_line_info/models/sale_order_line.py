@@ -81,6 +81,12 @@ class SaleOrderLine(models.Model):
                 line.name = note
         return res
 
+    @api.onchange('product_uom_qty')
+    def _onchange_product_uom_qty_update_price(self):
+        for line in self:
+            if line.product_id and line.product_uom_id:
+                line.price_unit = line.technical_price_unit * max(line.product_uom_qty, 1)
+
     def _compute_unit_quantity(self):
         uom_field = (
             'product_uom_id' if 'product_uom_id' in self._fields
