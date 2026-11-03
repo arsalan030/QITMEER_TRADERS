@@ -42,7 +42,7 @@
 
             <!-- Location aur Unit Quantity add karein -->
             <xpath expr="//field[@name='order_line']/list/field[@name='product_qty']" position="attributes">
-                <attribute name="string">Unit Quantity</attribute>
+                <attribute name="string">Quantity</attribute>
             </xpath>
 
             <xpath expr="//field[@name='order_line']/list/field[@name='product_qty']" position="after">

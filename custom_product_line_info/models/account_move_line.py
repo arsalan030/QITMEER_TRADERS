@@ -54,6 +54,17 @@ class AccountMoveLine(models.Model):
     def _compute_name(self):
         return super(AccountMoveLine, self.with_context(internal_ref_search=False))._compute_name()
 
+    @api.depends('product_id', 'product_id.uom_id', 'product_id.uom_id.parent_path')
+    def _compute_allowed_uom_ids(self):
+        Uom = self.env['uom.uom']
+        multi_uom_enabled = self.env['res.groups']._is_feature_enabled('uom.group_uom')
+        for line in self:
+            if line.product_id and multi_uom_enabled:
+                root_id = line.product_id.uom_id.parent_path.split('/', 1)[0]
+                line.allowed_uom_ids = Uom.search([('parent_path', '=like', f'{root_id}/%')])
+            else:
+                line.allowed_uom_ids = line.product_id._get_available_uoms()
+
     def _compute_unit_quantity(self):
         uom_field = (
             'product_uom_id' if 'product_uom_id' in self._fields
