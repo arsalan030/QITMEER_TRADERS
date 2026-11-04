@@ -2,20 +2,14 @@
 <odoo>
 
     <!-- Pricelist Item Form View -->
-    <record id="product_pricelist_item_form_multiple_products"
-            model="ir.ui.view">
-
+    <record id="product_pricelist_item_form_multiple_products" model="ir.ui.view">
         <field name="name">product.pricelist.item.form.multiple.products</field>
         <field name="model">product.pricelist.item</field>
-
-        <field name="inherit_id"
-               ref="product.product_pricelist_item_form_view"/>
-
+        <field name="inherit_id" ref="product.product_pricelist_item_form_view"/>
         <field name="arch" type="xml">
 
             <!-- Add Many2many Products -->
-            <xpath expr="//field[@name='product_tmpl_id']"
-                   position="before">
+            <xpath expr="//field[@name='product_tmpl_id']" position="before">
 
                 <field name="product_tmpl_ids"
                        widget="many2many_tags"
@@ -23,14 +17,15 @@
                        placeholder="Select Products"
                        options="{'no_create': True}"/>
 
+                <field name="customer_ids"
+                       widget="many2many_tags"
+                       options="{'no_create': True}"/>
+
             </xpath>
 
             <!-- Hide Original Many2one -->
-            <xpath expr="//field[@name='product_tmpl_id']"
-                   position="attributes">
-
+            <xpath expr="//field[@name='product_tmpl_id']" position="attributes">
                 <attribute name="invisible">1</attribute>
-
             </xpath>
 
         </field>
@@ -38,25 +33,17 @@
 
 
     <!-- Pricelist Main Form View -->
-    <record id="product_pricelist_form_multiple_products"
-            model="ir.ui.view">
-
+    <record id="product_pricelist_form_multiple_products" model="ir.ui.view">
         <field name="name">product.pricelist.form.multiple.products</field>
         <field name="model">product.pricelist</field>
-
-        <field name="inherit_id"
-               ref="product.product_pricelist_view"/>
-
+        <field name="inherit_id" ref="product.product_pricelist_view"/>
         <field name="arch" type="xml">
 
-            <xpath expr="//field[@name='item_ids']/list/field[@name='product_tmpl_id']"
-                   position="after">
-
+            <xpath expr="//field[@name='item_ids']/list/field[@name='product_tmpl_id']" position="after">
                 <field name="product_tmpl_ids"
                        widget="many2many_tags"
                        string="Multiple Products"
                        optional="show"/>
-
             </xpath>
 
         </field>

@@ -15,6 +15,15 @@ class ProductPricelistItem(models.Model):
         check_company=True,
     )
 
+    customer_ids = fields.Many2many(
+        comodel_name='res.partner',
+        relation='pricelist_item_customer_rel',
+        column1='pricelist_item_id',
+        column2='partner_id',
+        string='Customers',
+        check_company=True,
+    )
+
     # --------------------------------------------------
     # COMPUTE APPLIED ON
     # --------------------------------------------------
@@ -138,11 +147,28 @@ class ProductPricelistItem(models.Model):
     # --------------------------------------------------
 
     def _is_applicable_for(
-        self, product, quantity, *, uom=None, **kwargs
+            self, product, quantity, *, uom=None, **kwargs
     ):
         self.ensure_one()
         product.ensure_one()
 
+        # 1. CUSTOMER CHECK
+        if self.customer_ids:
+            partner = kwargs.get('partner')
+
+            if not partner:
+                return False
+
+            partner = partner.commercial_partner_id
+
+            allowed_customers = self.customer_ids.mapped(
+                'commercial_partner_id'
+            )
+
+            if partner not in allowed_customers:
+                return False
+
+        # 2. PRODUCT CHECK
         is_multiple_product_rule = bool(
             self.product_tmpl_ids
             and not self.product_tmpl_id
@@ -150,7 +176,6 @@ class ProductPricelistItem(models.Model):
             and not self.categ_id
         )
 
-        # Standard Odoo matching for normal rules
         if not is_multiple_product_rule:
             return super()._is_applicable_for(
                 product,
@@ -159,15 +184,13 @@ class ProductPricelistItem(models.Model):
                 **kwargs
             )
 
-        # Product UoM
+        # 3. UOM CHECK
         product_uom = product.uom_id
         uom = uom or product_uom
 
-        # UoM restriction
         if self.uom_id and uom != self.uom_id:
             return False
 
-        # Convert quantity into product UoM when needed
         qty_to_consider = quantity
 
         if uom not in product_uom + self.uom_id:
@@ -176,29 +199,64 @@ class ProductPricelistItem(models.Model):
                 product_uom,
             )
 
-        # Minimum quantity check
+        # 4. MINIMUM QUANTITY CHECK
         if (
-            self.min_quantity
-            and qty_to_consider < self.min_quantity
+                self.min_quantity
+                and qty_to_consider < self.min_quantity
         ):
             return False
 
-        # Product template matching
+        # 5. MULTIPLE PRODUCT CHECK
         if product._name == 'product.template':
             return product.id in self.product_tmpl_ids.ids
 
         return (
-            product.product_tmpl_id.id
-            in self.product_tmpl_ids.ids
+                product.product_tmpl_id.id
+                in self.product_tmpl_ids.ids
         )
 
 
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
-    
+
     # --------------------------------------------------
     # DISCOUNT COMPUTATION
+    # --------------------------------------------------
+
+    # --------------------------------------------------
+    # RECOMPUTE PRICELIST RULE ON CUSTOMER CHANGE
+    # --------------------------------------------------
+
+    @api.depends(
+        'product_id',
+        'product_uom_id',
+        'product_uom_qty',
+        'order_id.partner_id',
+        'order_id.pricelist_id',
+    )
+    def _compute_pricelist_item_id(self):
+        for line in self:
+            if (
+                    not line.product_id
+                    or line.display_type
+                    or not line.order_id.pricelist_id
+            ):
+                line.pricelist_item_id = False
+                continue
+
+            partner = line.order_id.partner_id
+
+            line.pricelist_item_id = (
+                line.order_id.pricelist_id._get_product_rule(
+                    product=line.product_id,
+                    partner=partner,
+                    **line._get_pricelist_kwargs(),
+                )
+            )
+
+    # --------------------------------------------------
+    # RECOMPUTE DISCOUNT
     # --------------------------------------------------
 
     @api.depends(
@@ -207,9 +265,7 @@ class SaleOrderLine(models.Model):
         'product_uom_qty',
         'pricelist_item_id',
         'order_id.pricelist_id',
+        'order_id.partner_id',
     )
     def _compute_discount(self):
-        # Use Odoo's original discount calculation.
-        # It calculates the effective discount from the
-        # selected pricelist rule and its base price.
         super()._compute_discount()
