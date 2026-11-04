@@ -5,8 +5,8 @@
         Customizations for product pricelists and pricing rules.
     """,
 
-    'author': 'LCL',
-    'website': 'https://www.yourcompany.com',
+    'author': 'LCL | Ubaid-Ur-Rehman',
+    'website': 'https://leaderscorp.net/',
 
     'category': 'Sales',
     'version': '20.0.1.0.0',
