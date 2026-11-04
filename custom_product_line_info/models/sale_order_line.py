@@ -58,6 +58,7 @@ class SaleOrderLine(models.Model):
         for line in self:
             if line.product_ref_id and line.product_id != line.product_ref_id:
                 line.product_id = line.product_ref_id
+                line._apply_supplierinfo()
 
     @api.onchange('product_id')
     def _onchange_product_id_set_internal_notes(self):
@@ -69,6 +70,97 @@ class SaleOrderLine(models.Model):
                     line.name = note
                 else:
                     line.name = line.product_id.name or ''
+
+    def _get_supplierinfo(self):
+        self.ensure_one()
+        if not self.product_id or not self.order_id.partner_id:
+            return self.env['product.supplierinfo']
+        partner_id = self.order_id.partner_id.id
+        tmpl_id = self.product_id.product_tmpl_id.id
+        supplierinfo = self.env['product.supplierinfo'].search([
+            ('extra_partner_ids', 'in', [partner_id]),
+            ('extra_product_tmpl_ids', 'in', [tmpl_id]),
+        ], limit=1)
+        if not supplierinfo:
+            supplierinfo = self.env['product.supplierinfo'].search([
+                ('partner_id', '=', partner_id),
+                ('product_tmpl_id', '=', tmpl_id),
+            ], limit=1)
+        return supplierinfo
+
+    def _apply_supplierinfo(self):
+        for line in self:
+            supplierinfo = line._get_supplierinfo()
+            if not supplierinfo:
+                line.fixed_amount = 0.0
+                line.discount_mode = False
+                continue
+            if supplierinfo.min_qty:
+                line.product_uom_qty = supplierinfo.min_qty
+            line.price_unit = supplierinfo.price
+            line.technical_price_unit = supplierinfo.price
+            if supplierinfo.discount_mode == 'amount' and supplierinfo.discount_amount:
+                line.fixed_amount = supplierinfo.discount_amount
+                line.discount_mode = 'amount'
+                line.discount = min(
+                    supplierinfo.discount_amount / supplierinfo.price * 100.0,
+                    100.0,
+                ) if supplierinfo.price else 0.0
+            elif supplierinfo.discount_mode == 'percent' or supplierinfo.discount:
+                line.discount = supplierinfo.discount
+                line.discount_mode = 'percent'
+                line.fixed_amount = supplierinfo.price * supplierinfo.discount / 100.0
+            elif supplierinfo.discount_amount:
+                line.fixed_amount = supplierinfo.discount_amount
+                line.discount_mode = 'amount'
+                line.discount = min(
+                    supplierinfo.discount_amount / supplierinfo.price * 100.0,
+                    100.0,
+                ) if supplierinfo.price else 0.0
+            else:
+                line.discount = 0.0
+                line.fixed_amount = 0.0
+                line.discount_mode = False
+
+    @api.onchange('product_id')
+    def _onchange_product_id(self):
+        result = super()._onchange_product_id()
+        self._apply_supplierinfo()
+        return result
+
+    @api.onchange('order_partner_id')
+    def _onchange_order_apply_supplierinfo(self):
+        self._apply_supplierinfo()
+
+    @api.depends('product_id', 'product_uom_id', 'product_uom_qty', 'order_partner_id')
+    def _compute_price_unit(self):
+        result = super()._compute_price_unit()
+        for line in self:
+            supplierinfo = line._get_supplierinfo()
+            if supplierinfo:
+                line.price_unit = supplierinfo.price
+                line.technical_price_unit = supplierinfo.price
+        return result
+
+    @api.depends('product_id', 'product_uom_id', 'product_uom_qty', 'order_partner_id')
+    def _compute_discount(self):
+        result = super()._compute_discount()
+        for line in self:
+            supplierinfo = line._get_supplierinfo()
+            if not supplierinfo:
+                continue
+            if supplierinfo.discount_mode == 'amount':
+                line.fixed_amount = supplierinfo.discount_amount
+                line.discount_mode = 'amount' if supplierinfo.discount_amount else False
+                line.discount = min(
+                    supplierinfo.discount_amount / supplierinfo.price * 100.0,
+                    100.0,
+                ) if supplierinfo.price else 0.0
+            else:
+                line.discount = supplierinfo.discount
+                line.discount_mode = 'percent' if supplierinfo.discount else False
+                line.fixed_amount = supplierinfo.price * supplierinfo.discount / 100.0
+        return result
 
     @api.depends('product_id', 'linked_line_id', 'linked_line_ids')
     def _compute_name(self):
@@ -85,7 +177,12 @@ class SaleOrderLine(models.Model):
     def _onchange_product_uom_qty_update_price(self):
         for line in self:
             if line.product_id and line.product_uom_id:
-                line.price_unit = line.technical_price_unit * max(line.product_uom_qty, 1)
+                supplierinfo = line._get_supplierinfo()
+                if supplierinfo:
+                    line.price_unit = supplierinfo.price
+                    line.technical_price_unit = supplierinfo.price
+                else:
+                    line.price_unit = line.technical_price_unit * max(line.product_uom_qty, 1)
 
     def _compute_unit_quantity(self):
         uom_field = (
