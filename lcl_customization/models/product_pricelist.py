@@ -221,9 +221,29 @@ class SaleOrderLine(models.Model):
 
 
     # --------------------------------------------------
-    # DISCOUNT COMPUTATION
+    # FIXED PRICE
     # --------------------------------------------------
+    @api.depends(
+        'product_id',
+        'product_uom_id',
+        'product_uom_qty',
+        'pricelist_item_id',
+        'pricelist_item_id.compute_price',
+        'pricelist_item_id.fixed_price',
+    )
+    def _compute_price_unit(self):
+        # First execute standard Odoo price calculation
+        super()._compute_price_unit()
 
+        for line in self:
+            item = line.pricelist_item_id
+
+            if (
+                    item
+                    and item.compute_price == 'fixed'
+                    and line.product_id
+            ):
+                line.price_unit = item.fixed_price
     # --------------------------------------------------
     # RECOMPUTE PRICELIST RULE ON CUSTOMER CHANGE
     # --------------------------------------------------
