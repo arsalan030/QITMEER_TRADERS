@@ -16,11 +16,11 @@
                        string="Multiple Products"
                        placeholder="Select Products"
                        options="{'no_create': True}"/>
-
-                <field name="customer_ids"
+            </xpath>
+            <xpath expr="//field[@name='product_tmpl_ids']" position="after">
+            <field name="customer_ids"
                        widget="many2many_tags"
                        options="{'no_create': True}"/>
-
             </xpath>
 
             <!-- Hide Original Many2one -->
