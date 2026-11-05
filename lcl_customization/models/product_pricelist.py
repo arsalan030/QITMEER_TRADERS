@@ -24,6 +24,29 @@ class ProductPricelistItem(models.Model):
         check_company=True,
     )
 
+    def _sync_customer_pricelist(self):
+        for item in self:
+            if not item.pricelist_id or not item.customer_ids:
+                continue
+
+            item.customer_ids.write({
+                'property_product_pricelist': item.pricelist_id.id,
+            })
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records._sync_customer_pricelist()
+        return records
+
+    def write(self, vals):
+        result = super().write(vals)
+
+        if 'customer_ids' in vals or 'pricelist_id' in vals:
+            self._sync_customer_pricelist()
+
+        return result
+
     # --------------------------------------------------
     # COMPUTE APPLIED ON
     # --------------------------------------------------
