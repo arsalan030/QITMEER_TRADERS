@@ -242,7 +242,21 @@ class ProductPricelistItem(models.Model):
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
+    discount_amount = fields.Float(
+        string="Discount Amount",
+        digits='Product Price',
+        default=0.0,
+    )
 
+    @api.onchange('discount_amount', 'price_unit')
+    def _onchange_discount_amount(self):
+        for line in self:
+            if line.price_unit > 0:
+                line.discount = (
+                                        line.discount_amount / line.price_unit
+                                ) * 100
+            else:
+                line.discount = 0.0
     # --------------------------------------------------
     # FIXED PRICE
     # --------------------------------------------------

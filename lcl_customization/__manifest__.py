@@ -21,6 +21,7 @@
 
     'data': [
         'views/product_pricelist_views.xml',
+        'views/sale_order_view.xml',
     ],
 
     'installable': True,
