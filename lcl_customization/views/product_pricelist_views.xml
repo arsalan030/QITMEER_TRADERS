@@ -44,6 +44,10 @@
                        widget="many2many_tags"
                        string="Multiple Products"
                        optional="show"/>
+
+                <field name="customer_ids"
+                       widget="many2many_tags"
+                       options="{'no_create': True}"/>
             </xpath>
 
         </field>
