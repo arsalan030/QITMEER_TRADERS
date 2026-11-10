@@ -1,5 +1,6 @@
+
 {
-    'name': 'LCL Customization',
+    'name': 'LCL Ubaid Customization',
     'summary': 'Custom product pricelist enhancements',
     'description': """
         Customizations for product pricelists and pricing rules.
@@ -22,8 +23,10 @@
     'data': [
         'views/product_pricelist_views.xml',
         'views/sale_order_view.xml',
+        'views/product_view.xml',
     ],
 
+    'icon': '/lcl_customization/static/description/icon.png',
     'installable': True,
     'application': False,
 }

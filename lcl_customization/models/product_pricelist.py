@@ -252,9 +252,7 @@ class SaleOrderLine(models.Model):
     def _onchange_discount_amount(self):
         for line in self:
             if line.price_unit > 0:
-                line.discount = (
-                                        line.discount_amount / line.price_unit
-                                ) * 100
+                line.discount = (line.discount_amount / line.price_unit) * 100
             else:
                 line.discount = 0.0
     # --------------------------------------------------
@@ -282,7 +280,7 @@ class SaleOrderLine(models.Model):
             ):
                 line.price_unit = item.fixed_price
     # --------------------------------------------------
-    # RECOMPUTE PRICELIST RULE ON CUSTOMER CHANGE
+    # RECOMPUTE PRICE LIST RULE ON CUSTOMER CHANGE
     # --------------------------------------------------
 
     @api.depends(
