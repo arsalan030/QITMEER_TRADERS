@@ -1,0 +1,21 @@
+<odoo>
+     <template id="report_saleorder_document_hide_description"
+              inherit_id="sale.report_saleorder_document">
+
+        <xpath expr="//td[@name='td_product_name']//span[@t-field='line.label']"
+               position="replace">
+            <span class="d-inline-block w-100 lh-sm"
+                  t-out="line.product_id.name or line.label"/>
+        </xpath>
+
+    </template>
+
+    <template id="report_invoice_document_only_name"
+              inherit_id="account.report_invoice_document">
+
+        <xpath expr="//td[@name='account_invoice_line_name']/span" position="replace">
+            <span t-out="line.product_id.name or line.name"/>
+        </xpath>
+
+    </template>
+</odoo>

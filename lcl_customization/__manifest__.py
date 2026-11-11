@@ -24,6 +24,7 @@
         'views/product_pricelist_views.xml',
         'views/sale_order_view.xml',
         'views/product_view.xml',
+        'views/report_templates_inherit.xml',
     ],
 
     'icon': '/lcl_customization/static/description/icon.png',
