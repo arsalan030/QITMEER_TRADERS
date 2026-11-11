@@ -1,4 +1,3 @@
-
 {
     'name': 'LCL Ubaid Customization',
     'summary': 'Custom product pricelist enhancements',
@@ -15,8 +14,8 @@
     'license': 'LGPL-3',
 
     'depends': [
-        'base',
-        'product',
+        'base', 'stock',
+        'product', 'purchase',
         'sale_management',
     ],
 
