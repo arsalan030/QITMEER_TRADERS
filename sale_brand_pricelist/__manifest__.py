@@ -15,7 +15,7 @@ Brand-based customer pricing
     'license': 'LGPL-3',
     'depends': ['sale_management', 'product'],
     'data': [
-        'security/ir.model.access.csv',
+        'security/ir.access.csv',
         'views/product_brand_views.xml',
         'views/product_template_views.xml',
         'views/res_partner_views.xml',

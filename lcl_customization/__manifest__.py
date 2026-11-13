@@ -20,7 +20,7 @@
     ],
 
     'data': [
-        'views/product_pricelist_views.xml',
+        # 'views/product_pricelist_views.xml',
         'views/sale_order_view.xml',
         'views/product_view.xml',
         'views/report_templates_inherit.xml',
