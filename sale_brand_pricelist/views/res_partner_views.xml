@@ -18,9 +18,7 @@
                     </field>
                     <div class="text-muted">
                         Products of these brands are priced from the selected pricelist on
-                        sale orders. If a product is priced in several of these pricelists,
-                        a wizard asks which price rule to use. Other brands use the
-                        customer's normal pricelist.
+                        sale orders. Other brands use the customer's normal pricelist.
                     </div>
                 </page>
             </xpath>
