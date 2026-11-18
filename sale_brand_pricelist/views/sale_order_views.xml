@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_brand_rule" model="ir.ui.view">
+        <field name="name">sale.order.form.brand.rule</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='order_line']/list/field[@name='price_unit']" position="before">
+                <field name="brand_rule_count" column_invisible="1"/>
+                <field name="brand_pricelist_item_id" optional="hide" readonly="1"/>
+                <button name="action_open_brand_rule_wizard" type="object"
+                        icon="fa-tags" title="Select Price Rule"
+                        invisible="brand_rule_count &lt; 2 or parent.state not in ('draft', 'sent')"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
