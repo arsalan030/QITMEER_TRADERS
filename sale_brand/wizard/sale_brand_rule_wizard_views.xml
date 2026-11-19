@@ -6,29 +6,31 @@
         <field name="arch" type="xml">
             <form string="Select Price Rule">
                 <group>
-                    <field name="line_id" invisible="1"/>
-                    <field name="product_id" readonly="1"/>
-                    <field name="product_uom_qty" readonly="1" string="Quantity"/>
+                    <group>
+                        <field name="line_id" invisible="1"/>
+                        <field name="partner_id"/>
+                        <field name="product_id"/>
+                        <field name="product_uom_qty"/>
+                    </group>
                 </group>
                 <p class="text-muted">
                     This product is priced in more than one of the customer's pricelists.
-                    Choose the rule to apply on this line.
+                    Choose the price rule to apply on this line.
                 </p>
-                <field name="option_ids" nolabel="1">
-                    <list create="0" delete="0" edit="0"
-                          decoration-success="is_current">
+                <field name="option_ids" nolabel="1" readonly="1">
+                    <list decoration-success="is_current">
                         <field name="pricelist_id"/>
                         <field name="rule_id"/>
                         <field name="min_quantity"/>
                         <field name="currency_id" column_invisible="1"/>
                         <field name="price" widget="monetary"/>
-                        <field name="is_current"/>
+                        <field name="is_current" optional="hide"/>
                         <button name="action_select" type="object" string="Select"
                                 class="btn-primary" icon="fa-check"/>
                     </list>
                 </field>
                 <footer>
-                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                    <button string="Keep Default" special="cancel" class="btn-secondary"/>
                 </footer>
             </form>
         </field>

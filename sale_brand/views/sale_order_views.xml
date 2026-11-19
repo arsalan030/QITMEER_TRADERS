@@ -5,7 +5,7 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='order_line']/list/field[@name='tax_ids']" position="before">
+            <xpath expr="//field[@name='order_line']/list/field[@name='price_unit']" position="before">
                 <field name="brand_rule_count" column_invisible="1"/>
                 <field name="brand_pricelist_item_id" optional="hide" readonly="1"/>
                 <button name="action_open_brand_rule_wizard" type="object"
