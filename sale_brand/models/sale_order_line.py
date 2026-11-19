@@ -40,7 +40,8 @@ class SaleOrderLine(models.Model):
         mappings = partner.brand_pricelist_ids
         rules = Rule
         for pricelist in mappings.pricelist_id:
-            rule = self._brand_rule_from_pricelist(pricelist, product, qty, uom, date)
+            rule = self._brand_rule_from_pricelist(
+                pricelist, product, qty, uom, date)
             if not rule:
                 continue
             brand_mapped = bool(brand) and brand in mappings.filtered(
@@ -125,13 +126,17 @@ class SaleOrderLine(models.Model):
         partner = self.env['res.partner'].browse(partner_id)
         product = self.env['product.product'].browse(product_id)
         uom = self.env['uom.uom'].browse(uom_id) if uom_id else product.uom_id
-        date = fields.Datetime.to_datetime(date) if date else fields.Datetime.now()
-        candidates = self._brand_rule_candidates(partner, product, qty, uom, date)
+        date = fields.Datetime.to_datetime(
+            date) if date else fields.Datetime.now()
+        candidates = self._brand_rule_candidates(
+            partner, product, qty, uom, date)
         if len(candidates) < 2:
             return False
         wizard = self.env['sale.brand.rule.wizard'].create_from_values(
             partner, product, qty, uom, date, candidates)
         return wizard.id
+
+
 
     def action_open_brand_rule_wizard(self):
         """Tag button on a saved line: re-open the choice."""
