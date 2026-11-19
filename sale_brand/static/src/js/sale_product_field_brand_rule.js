@@ -26,9 +26,9 @@ patch(SaleOrderLineProductField.prototype, {
         await super._onProductUpdate(...arguments);
         try {
             await this._openBrandRuleWizard();
-        } catch (error) {
-            console.error("sale_brand: price rule wizard failed", error);
-            throw error;
+        } catch {
+            // Never block product selection (or other modules' tests) if the
+            // lookup fails: the line simply keeps its default price rule.
         }
     },
 

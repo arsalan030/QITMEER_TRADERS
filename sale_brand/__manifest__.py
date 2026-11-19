@@ -1,6 +1,6 @@
 {
     'name': 'Sale Brand Pricelist',
-    'version': '1.2.1',
+    'version': '1.2.2',
     'summary': 'Auto-apply a customer-specific pricelist per product brand on sale orders',
     'description': """
 Brand-based customer pricing
