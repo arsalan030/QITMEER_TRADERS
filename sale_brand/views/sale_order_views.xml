@@ -5,13 +5,27 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='order_line']/list/field[@name='price_unit']" position="before">
+
+            <!-- 1. S.No ko sequence field (jo hamesha pehle hoti hai) se pehle daal do -->
+            <xpath expr="//field[@name='order_line']/list/field[@name='sequence']" position="before">
+                <field name="line_sno" string="S.No" readonly="1" optional="show"/>
+            </xpath>
+
+            <!-- 2. Header fields -->
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="dispatch_person_id" optional="show"/>
+                <field name="delivery_channel_id" optional="show"/>
+            </xpath>
+
+            <!-- 3. Hidden fields -->
+            <xpath expr="//field[@name='order_line']/list" position="inside">
                 <field name="brand_rule_count" column_invisible="1"/>
                 <field name="brand_pricelist_item_id" optional="hide" readonly="1"/>
                 <button name="action_open_brand_rule_wizard" type="object"
                         icon="fa-tags" title="Select Price Rule"
                         invisible="brand_rule_count &lt; 2 or parent.state not in ('draft', 'sent')"/>
             </xpath>
+
         </field>
     </record>
 </odoo>

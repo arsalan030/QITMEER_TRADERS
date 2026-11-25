@@ -15,7 +15,7 @@ Brand-based customer pricing
     'category': 'Sales/Sales',
     'author': 'Custom',
     'license': 'LGPL-3',
-    'depends': ['sale_management', 'product'],
+    'depends': ['sale_management', 'product' , 'hr'],
     'data': [
         'security/ir.access.csv',
         'views/product_brand_views.xml',
@@ -23,6 +23,7 @@ Brand-based customer pricing
         'views/res_partner_views.xml',
         'views/sale_order_views.xml',
         'wizard/sale_brand_rule_wizard_views.xml',
+        'views/delivery_channel.xml',
     ],
     'assets': {
         'web.assets_backend': [
