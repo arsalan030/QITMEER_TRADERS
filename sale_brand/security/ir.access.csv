@@ -5,3 +5,8 @@ access_partner_brand_pricelist_user,partner brand pricelist user,res.partner.bra
 access_partner_brand_pricelist_salesman,partner brand pricelist salesman,res.partner.brand.pricelist,sales_team.group_sale_salesman,crud,
 access_sale_brand_rule_wizard,sale brand rule wizard,sale.brand.rule.wizard,sales_team.group_sale_salesman,crud,
 access_sale_brand_rule_wizard_option,sale brand rule wizard option,sale.brand.rule.wizard.option,sales_team.group_sale_salesman,crud,
+access_delivery_channel,delivery channel,delivery.channel,base.group_user,crud,
+
+
+
+

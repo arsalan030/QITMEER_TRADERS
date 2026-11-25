@@ -12,6 +12,19 @@ class SaleOrderLine(models.Model):
         compute='_compute_brand_rule_count',
         help="Number of matching price rules in the customer's brand pricelists.")
 
+    # --- NAYE FIELDS ---
+    delivery_channel_id = fields.Many2one(
+        'delivery.channel',
+        string='Delivery Channel',
+        help="Select the delivery channel for this item"
+    )
+    dispatch_person_id = fields.Many2one(
+        'hr.employee',
+        string='Dispatch Person',
+        help="Employee who will dispatch this item"
+    )
+    line_sno = fields.Integer(string='S.No', compute='_compute_line_sno', store=True)
+
     # ------------------------------------------------------------------
     # Rule lookup (usable without a saved line, e.g. from the JS popup)
     # ------------------------------------------------------------------
@@ -26,12 +39,6 @@ class SaleOrderLine(models.Model):
 
     @api.model
     def _brand_rule_candidates(self, partner, product, qty, uom, date):
-        """Every price rule for `product` in the pricelists assigned to `partner`.
-
-        A pricelist not mapped to the product's brand only counts when it has a
-        rule for this product / variant / category, so a catch-all
-        "All Products" rule does not make every product ambiguous.
-        """
         Rule = self.env['product.pricelist.item']
         partner = partner.commercial_partner_id
         if not partner or not product:
@@ -59,7 +66,6 @@ class SaleOrderLine(models.Model):
             self.product_uom_id, self._get_order_date())
 
     def _get_brand_pricelist(self):
-        """Default pricelist for this line's brand (first mapping), or False."""
         self.ensure_one()
         partner = self.order_id.partner_id.commercial_partner_id
         brand = self.product_id.product_tmpl_id.brand_id
@@ -84,23 +90,19 @@ class SaleOrderLine(models.Model):
         for line in self:
             if not line.product_id or line.display_type:
                 continue
-            # 1) Rule chosen in the wizard (if still valid for this line)
             chosen = line.brand_pricelist_item_id
             if chosen and chosen in line._get_brand_rule_candidates():
                 line.pricelist_item_id = chosen
                 continue
-            # 2) Pricelist mapped to the product's brand
             pricelist = line._get_brand_pricelist()
             if not pricelist:
-                continue  # keep the order's normal pricelist rule
+                continue
             rule = line._brand_rule_from_pricelist(
                 pricelist, line.product_id, line.product_uom_qty,
                 line.product_uom_id, line._get_order_date())
             if rule:
                 line.pricelist_item_id = rule
 
-    # Standard Odoo only recomputes price/discount on product, UoM or qty change:
-    # also recompute them when a rule is picked in the wizard.
     @api.depends('brand_pricelist_item_id')
     def _compute_price_unit(self):
         return super()._compute_price_unit()
@@ -114,14 +116,25 @@ class SaleOrderLine(models.Model):
         self.brand_pricelist_item_id = False
 
     # ------------------------------------------------------------------
+    # S.No Compute Method
+    # ------------------------------------------------------------------
+    @api.depends('order_id.order_line', 'order_id.order_line.sequence')
+    def _compute_line_sno(self):
+        for order in self.mapped('order_id'):
+            lines = order.order_line.sorted(lambda l: (l.sequence, l.id))
+            counter = 1
+            for line in lines:
+                if not line.display_type:
+                    line.line_sno = counter
+                    counter += 1
+                else:
+                    line.line_sno = 0
+
+    # ------------------------------------------------------------------
     # Wizard
     # ------------------------------------------------------------------
     @api.model
     def get_brand_rule_wizard(self, partner_id, product_id, qty=1.0, uom_id=False, date=False):
-        """Called from the order line product field right after a product is picked.
-
-        Returns the id of a wizard to open, or False when there is 0 or 1 rule.
-        """
         partner = self.env['res.partner'].browse(partner_id)
         product = self.env['product.product'].browse(product_id)
         uom = self.env['uom.uom'].browse(uom_id) if uom_id else product.uom_id
@@ -134,10 +147,10 @@ class SaleOrderLine(models.Model):
         return wizard.id
 
     def action_open_brand_rule_wizard(self):
-        """Tag button on a saved line: re-open the choice."""
         self.ensure_one()
         wizard = self.env['sale.brand.rule.wizard'].create_from_values(
             self.order_id.partner_id, self.product_id, self.product_uom_qty,
             self.product_uom_id, self._get_order_date(),
             self._get_brand_rule_candidates(), line=self)
         return wizard._get_action()
+
