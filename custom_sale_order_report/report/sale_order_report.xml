@@ -1,0 +1,863 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- =====================================================
+         1. HIDE DEFAULT COMPANY ADDRESS FOR SALE ORDERS ONLY
+         Odoo 20: web.company_address_list
+    ====================================================== -->
+
+    <template id="hide_company_address_sale_order"
+              inherit_id="web.company_address_list">
+
+        <xpath expr="//ul[@name='company_address_list']"
+               position="attributes">
+
+            <attribute name="t-if">
+                not (o and o._name == 'sale.order')
+            </attribute>
+
+        </xpath>
+
+    </template>
+
+
+    <!-- =====================================================
+         2. CUSTOM SALE ORDER REPORT
+    ====================================================== -->
+
+    <template id="report_saleorder_document_custom_table"
+              inherit_id="sale.report_saleorder_document">
+
+        <!-- Remove default Odoo address and document heading -->
+        <xpath expr="//t[@t-call='web.external_layout']"
+               position="attributes">
+            <attribute name="address">False</attribute>
+            <attribute name="layout_document_title">False</attribute>
+        </xpath>
+
+        <!-- Hide default blue document title -->
+        <xpath expr="//t[@t-call='web.external_layout']"
+               position="before">
+
+            <t t-set="layout_document_title" t-value="False"/>
+            <t t-set="hide_title" t-value="True"/>
+
+        </xpath>
+
+
+        <!-- Replace default report page -->
+        <xpath expr="//div[contains(concat(' ', normalize-space(@class), ' '), ' page ')]"
+               position="replace">
+
+            <div class="page custom_sale_order_page">
+
+                <style type="text/css">
+
+                    /* =====================================
+                    GENERAL REPORT
+                    ===================================== */
+
+                    .custom_sale_order_page {
+                    font-family: Arial, sans-serif !important;
+                    font-size: 14px !important;
+                    color: #111 !important;
+                    }
+
+                    .custom_sale_order_page * {
+                    font-family: Arial, sans-serif !important;
+                    font-size: 14px !important;
+                    }
+
+                    .custom_sale_order_page table {
+                    width: 100%;
+                    table-layout: fixed;
+                    border-collapse: collapse !important;
+                    border-spacing: 0 !important;
+                    margin: 0 0 8px 0;
+                    font-size: 14px !important;
+                    }
+
+                    .custom_sale_order_page th,
+                    .custom_sale_order_page td {
+                    border: 1px solid #777 !important;
+                    padding: 6px 5px !important;
+                    vertical-align: middle;
+                    line-height: 1.3;
+                    overflow-wrap: break-word;
+                    word-wrap: break-word;
+                    }
+
+
+                    /* =====================================
+                    TOP HEADER TABLE
+                    ===================================== */
+
+                    .custom_sale_order_page table.top-table {
+                    width: 100%;
+                    border: none !important;
+                    border-collapse: separate !important;
+                    border-spacing: 0 !important;
+                    margin-bottom: 0px;
+                    }
+
+                    .custom_sale_order_page .top-table > tbody > tr > td {
+                    border: none !important;
+                    padding: 0 8px 0 0 !important;
+                    vertical-align: top;
+                    }
+
+
+                    .custom_sale_order_page {
+                    font-family: Arial, sans-serif !important;
+                    font-size: 14px !important;
+                    color: #111 !important;
+                    width: 100% !important;
+                    box-sizing: border-box !important;
+                    }
+
+                    .custom_sale_order_page * {
+                    box-sizing: border-box !important;
+                    font-family: Arial, sans-serif !important;
+                    font-size: 14px !important;
+                    }
+
+                    .custom_sale_order_page table {
+                    width: 100% !important;
+                    table-layout: fixed !important;
+                    border-collapse: collapse !important;
+                    border-spacing: 0 !important;
+                    margin: 0 !important;
+                    }
+
+                    .custom_sale_order_page th,
+                    .custom_sale_order_page td {
+                    border: 1px solid #777 !important;
+                    padding: 6px 5px !important;
+                    vertical-align: middle;
+                    line-height: 1.3;
+                    overflow-wrap: break-word;
+                    }
+
+                    /* TOP HEADER */
+                    .custom_sale_order_page table.top-table {
+                    width: 100% !important;
+                    margin: 0 0 0 0 !important;
+                    border: none !important;
+                    }
+
+                    .custom_sale_order_page .top-table > tbody > tr > td {
+                    border: none !important;
+                    padding: 0 !important;
+                    vertical-align: top !important;
+                    }
+
+                    /* LEFT CUSTOMER BOX */
+                    .custom_sale_order_page .recipient-box {
+                    width: 100%;
+                    height: 85px;
+                    border: 1px solid #555 !important;
+                    padding: 8px !important;
+                    line-height: 1.4;
+                    }
+
+                    /* TO LABEL */
+                    .custom_sale_order_page .recipient-label {
+                    border: 1px solid #555 !important;
+                    border-bottom: none !important;
+                    padding: 5px 8px !important;
+                    font-weight: bold;
+                    height: 28px;
+                    }
+
+                    /* RIGHT ORDER HEADER */
+                    .custom_sale_order_page table.order-header {
+                    width: 100% !important;
+                    height: 113px;
+                    margin: 0 !important;
+                    border: 1px solid #555 !important;
+                    border-collapse: collapse !important;
+                    }
+
+                    .custom_sale_order_page table.order-header td {
+                    border: 1px solid #777 !important;
+                    padding: 6px 5px !important;
+                    text-align: center !important;
+                    vertical-align: middle !important;
+                    }
+
+                    .custom_sale_order_page .report-title {
+                    background: #000 !important;
+                    color: #fff !important;
+                    font-weight: bold !important;
+                    text-align: center !important;
+                    padding: 8px !important;
+                    }
+
+                    .custom_sale_order_page .report-title,
+                    .custom_sale_order_page .report-title * {
+                    color: #fff !important;
+                    }
+
+                    .custom_sale_order_page .order-number {
+                    font-weight: bold !important;
+                    }
+
+                    /* META TABLE */
+                    .custom_sale_order_page .meta-label,
+                    .custom_sale_order_page .items thead th {
+                    background: #e6e6e6 !important;
+                    font-weight: bold !important;
+                    text-align: center !important;
+                    }
+
+                    .custom_sale_order_page .meta-value {
+                    text-align: center !important;
+                    height: 28px;
+                    }
+
+                    /* PRODUCT TABLE */
+                    .custom_sale_order_page table.items {
+                    width: 100% !important;
+                    margin: 0 !important;
+                    }
+
+                    .custom_sale_order_page .items thead th {
+                    padding: 8px 4px !important;
+                    }
+
+                    .custom_sale_order_page .items tbody td {
+                    height: 55px;
+                    }
+
+                    .custom_sale_order_page .items tbody tr:nth-child(even) td {
+                    background: #ededed;
+                    }
+
+                    /* ALIGNMENT */
+                    .custom_sale_order_page .text-center {
+                    text-align: center !important;
+                    }
+
+                    .custom_sale_order_page .text-right {
+                    text-align: right !important;
+                    }
+
+                    .custom_sale_order_page .no-wrap {
+                    white-space: nowrap;
+                    }
+
+                    /* TOTALS */
+                    .custom_sale_order_page table.totals {
+                    width: 45% !important;
+                    margin: 8px 0 0 auto !important;
+                    }
+
+                    .custom_sale_order_page .totals td {
+                    padding: 7px !important;
+                    }
+
+                    .custom_sale_order_page .grand-total td {
+                    background: #e6e6e6 !important;
+                    font-weight: bold !important;
+                    }
+
+                    /* TERMS */
+                    .custom_sale_order_page .terms-block {
+                    margin-top: 15px;
+                    border-top: 1px solid #777;
+                    padding-top: 8px;
+                    }
+
+
+                    /* =====================================
+                    RECIPIENT SECTION
+                    ===================================== */
+
+                    .custom_sale_order_page .recipient-box {
+                    height: 65px;
+                    padding: 8px;
+                    border: 1px solid #555 !important;
+                    line-height: 1.4;
+                    }
+
+
+                    /* =====================================
+                    SALES ORDER HEADER
+                    ===================================== */
+
+                    .custom_sale_order_page table.order-header {
+                    width: 100%;
+                    margin: 0 !important;
+                    border: 1px solid #555 !important;
+                    border-collapse: collapse !important;
+                    border-spacing: 0 !important;
+                    table-layout: fixed;
+                    }
+
+                    .custom_sale_order_page table.order-header th,
+                    .custom_sale_order_page table.order-header td {
+                    border: 1px solid #777 !important;
+                    padding: 7px 5px !important;
+                    text-align: center !important;
+                    vertical-align: middle;
+                    }
+
+                    /* Black Sales Order heading */
+                    .custom_sale_order_page .report-title {
+                    background: #000 !important;
+                    color: #fff !important;
+                    font-weight: bold !important;
+                    text-align: center !important;
+                    padding: 8px !important;
+                    }
+
+                    .custom_sale_order_page .report-title,
+                    .custom_sale_order_page .report-title * {
+                    color: #fff !important;
+                    }
+
+                    /* Order number */
+                    .custom_sale_order_page .order-number {
+                    color: #111 !important;
+                    font-weight: bold !important;
+                    text-decoration: none !important;
+                    }
+
+
+                    /* =====================================
+                    META INFORMATION
+                    ===================================== */
+
+                    .custom_sale_order_page .meta-label,
+                    .custom_sale_order_page .items thead th {
+                    background: #e6e6e6 !important;
+                    font-weight: bold !important;
+                    text-align: center !important;
+                    }
+
+                    .custom_sale_order_page .meta-value {
+                    text-align: center !important;
+                    height: 28px;
+                    }
+
+
+                    /* =====================================
+                    PRODUCT TABLE
+                    ===================================== */
+
+                    .custom_sale_order_page table.items {
+                    width: 100%;
+                    border-collapse: collapse !important;
+                    border-spacing: 0 !important;
+                    margin-top: 0;
+                    }
+
+                    .custom_sale_order_page .items thead th {
+                    vertical-align: middle;
+                    padding: 8px 4px !important;
+                    }
+
+                    .custom_sale_order_page .items tbody td {
+                    height: 55px;
+                    }
+
+                    .custom_sale_order_page .items tbody tr:nth-child(even) td {
+                    background: #ededed;
+                    }
+
+
+                    /* =====================================
+                    ALIGNMENT
+                    ===================================== */
+
+                    .custom_sale_order_page .text-center {
+                    text-align: center !important;
+                    }
+
+                    .custom_sale_order_page .text-right {
+                    text-align: right !important;
+                    }
+
+                    .custom_sale_order_page .no-wrap {
+                    white-space: nowrap;
+                    }
+
+
+                    /* =====================================
+                    TOTALS
+                    ===================================== */
+
+                    .custom_sale_order_page table.totals {
+                    width: 45%;
+                    margin: 10px 0 0 auto;
+                    border-collapse: collapse !important;
+                    }
+
+                    .custom_sale_order_page .totals td {
+                    padding: 7px !important;
+                    }
+
+                    .custom_sale_order_page .grand-total td {
+                    background: #e6e6e6 !important;
+                    font-weight: bold !important;
+                    }
+
+
+                    /* =====================================
+                    TERMS AND CONDITIONS
+                    ===================================== */
+
+                    .custom_sale_order_page .terms-block {
+                    margin-top: 15px;
+                    border-top: 1px solid #777;
+                    padding-top: 8px;
+                    }
+
+                </style>
+
+
+                <!-- =====================================
+                     CUSTOMER AND SALES ORDER HEADER
+                ===================================== -->
+
+
+                <table class="top-table">
+                    <colgroup>
+                        <col style="width: 58%;"/>
+                        <col style="width: 42%;"/>
+                    </colgroup>
+
+                    <tbody>
+                        <tr>
+                            <!-- LEFT SIDE: CUSTOMER ADDRESS -->
+                            <td style="padding-right: 8px !important;">
+
+                                <div class="recipient-label">
+                                    To:
+                                </div>
+
+                                <div class="recipient-box">
+
+                                    <strong t-field="doc.partner_id.name"/>
+
+                                    <br/>
+
+                                    <span t-if="doc.partner_id.city"
+                                          t-field="doc.partner_id.city"/>
+
+                                    <br t-if="doc.partner_id.city"/>
+
+                                    <span t-if="doc.partner_id.street"
+                                          t-field="doc.partner_id.street"/>
+
+                                    <br t-if="doc.partner_id.street"/>
+
+                                    <span t-if="doc.partner_id.phone">
+                                        Phone:
+                                        <span t-field="doc.partner_id.phone"/>
+                                    </span>
+
+                                </div>
+
+                            </td>
+
+                            <!-- RIGHT SIDE: SALES ORDER -->
+                            <td>
+
+                                <table class="order-header">
+
+                                    <tbody>
+
+                                        <tr>
+                                            <td colspan="2" class="report-title">
+                                                Sales Order
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td class="meta-label">
+                                                Date
+                                            </td>
+
+                                            <td class="meta-label">
+                                                No.
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td class="meta-value">
+                                                <span t-field="doc.date_order"
+                                                      t-options="{'widget': 'date'}"/>
+                                            </td>
+
+                                            <td class="meta-value">
+                                                <span class="order-number"
+                                                      t-field="doc.name"/>
+                                            </td>
+                                        </tr>
+
+                                    </tbody>
+
+                                </table>
+
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+
+                <!-- =====================================
+                     DELIVERY AND PAYMENT INFORMATION
+                ===================================== -->
+
+                <table>
+
+                    <colgroup>
+                        <col style="width: 17%;"/>
+                        <col style="width: 17%;"/>
+                        <col style="width: 17%;"/>
+                        <col style="width: 17%;"/>
+                        <col style="width: 17%;"/>
+                        <col style="width: 16%;"/>
+                        <col style="width: 16%;"/>
+                    </colgroup>
+
+                    <thead>
+
+                        <tr>
+
+                            <th class="meta-label">
+                                Delivery Receipt No.
+                            </th>
+
+                            <th class="meta-label">
+                                Delivery channel
+                            </th>
+
+                            <th class="meta-label">
+                                Delivery person
+                            </th>
+
+                            <th class="meta-label">
+                                Delivery Date
+                            </th>
+
+                            <th class="meta-label">
+                                Payment Due Date
+                            </th>
+
+                            <th class="meta-label">
+                                Payment Terms
+                            </th>
+
+                            <th class="meta-label">
+                                Bill Status
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+
+                            <td class="meta-value">
+                                <t t-if="doc.picking_ids">
+                                    <t t-foreach="doc.picking_ids" t-as="picking">
+                                        <span t-field="picking.name"/>
+                                        <br t-if="not picking_last"/>
+                                    </t>
+                                </t>
+                            </td>
+
+                            <td class="meta-value">
+
+                                <span t-if="doc.delivery_channel_id"
+                                      t-field="doc.delivery_channel_id.name"/>
+
+                                <span t-else="">
+                                    -
+                                </span>
+
+                            </td>
+
+                            <td class="meta-value">
+
+                                <span t-if="doc.dispatch_person_id"
+                                      t-field="doc.dispatch_person_id.name"/>
+
+                                <span t-else="">
+                                    -
+                                </span>
+
+                            </td>
+
+                            <td class="meta-value">
+
+                                <span t-if="doc.commitment_date"
+                                      t-field="doc.commitment_date"
+                                      t-options="{'widget': 'date'}"/>
+
+                                <span t-else="">
+                                    Not Scheduled
+                                </span>
+
+                            </td>
+
+                            <td class="meta-value">
+                                <t t-if="doc.invoice_ids">
+                                    <t t-foreach="doc.invoice_ids" t-as="invoice">
+                                        <span t-if="invoice.invoice_date_due"
+                                              t-field="invoice.invoice_date_due"
+                                              t-options="{'widget': 'date'}"/>
+                                        <br t-if="not invoice_last"/>
+                                    </t>
+                                </t>
+
+                                <t t-else="">
+                                    To Be Confirmed
+                                </t>
+                            </td>
+
+                            <td class="meta-value">
+
+                                <span t-if="doc.payment_term_id"
+                                      t-field="doc.payment_term_id.name"/>
+
+                                <span t-else="">
+                                    -
+                                </span>
+
+                            </td>
+
+                            <td class="meta-value">
+
+                                <span t-field="doc.invoice_status"/>
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+
+                <!-- =====================================
+                     ORDER LINES
+                ===================================== -->
+
+                <table class="items">
+
+                    <colgroup>
+                        <col style="width: 6%;"/>
+                        <col style="width: 16%;"/>
+                        <col style="width: 31%;"/>
+                        <col style="width: 8%;"/>
+                        <col style="width: 7%;"/>
+                        <col style="width: 9%;"/>
+                        <col style="width: 11%;"/>
+                        <col style="width: 12%;"/>
+                    </colgroup>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>S.No.</th>
+                            <th>Item Code</th>
+                            <th>Item Description</th>
+                            <th>Qty</th>
+                            <th>U/M</th>
+                            <th>PBD</th>
+                            <th>Unit Price</th>
+                            <th>Amount</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        <t t-set="serial_no" t-value="0"/>
+
+                        <t t-foreach="doc.order_line" t-as="line">
+
+                            <!-- Product Lines -->
+                            <tr t-if="not line.display_type">
+
+                                <t t-set="serial_no"
+                                   t-value="serial_no + 1"/>
+
+                                <td class="text-center">
+
+                                    <span t-out="serial_no"/>
+
+                                </td>
+
+                                <td>
+
+                                    <span t-if="line.product_id.default_code"
+                                          t-field="line.product_id.default_code"/>
+
+                                    <span t-else="">
+                                        ITEM-CODE (Demo)
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    <span t-field="line.label"/>
+
+                                </td>
+
+                                <td class="text-center">
+
+                                    <span t-field="line.product_uom_qty"
+                                          t-options="{'widget': 'float', 'decimal_precision': 'Product Unit'}"/>
+
+                                </td>
+
+                                <td class="text-center">
+
+                                    <span t-if="line.product_uom_id"
+                                          t-field="line.product_uom_id.name"/>
+
+                                </td>
+
+                                <td class="text-center">
+                                    -
+                                </td>
+
+                                <td class="text-right no-wrap">
+
+                                    <span t-field="line.price_unit"/>
+
+                                </td>
+
+                                <td class="text-right no-wrap">
+
+                                    <span t-field="line.price_subtotal"/>
+
+                                </td>
+
+                            </tr>
+
+
+                            <!-- Section Lines -->
+                            <tr t-elif="line.display_type == 'line_section'">
+
+                                <td colspan="8">
+
+                                    <strong t-field="line.label"/>
+
+                                </td>
+
+                            </tr>
+
+
+                            <!-- Note Lines -->
+                            <tr t-elif="line.display_type == 'line_note'">
+
+                                <td colspan="8">
+
+                                    <em t-field="line.label"/>
+
+                                </td>
+
+                            </tr>
+
+                        </t>
+
+
+                        <!-- Empty Order -->
+                        <tr t-if="not doc.order_line.filtered(lambda l: not l.display_type)">
+
+                            <td colspan="8" class="text-center">
+
+                                No order lines found.
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+
+                <!-- =====================================
+                     ORDER TOTALS
+                ===================================== -->
+
+                <table class="totals">
+
+                    <tr>
+
+                        <td>
+                            <strong>Untaxed Amount</strong>
+                        </td>
+
+                        <td class="text-right">
+
+                            <span t-field="doc.amount_untaxed"
+                                  t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
+
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <td>
+                            <strong>Taxes</strong>
+                        </td>
+
+                        <td class="text-right">
+
+                            <span t-field="doc.amount_tax"
+                                  t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
+
+                        </td>
+
+                    </tr>
+
+                    <tr class="grand-total">
+
+                        <td>
+                            <strong>Total</strong>
+                        </td>
+
+                        <td class="text-right">
+
+                            <strong t-field="doc.amount_total"
+                                    t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
+
+                        </td>
+
+                    </tr>
+
+                </table>
+
+
+                <!-- =====================================
+                     TERMS AND CONDITIONS
+                ===================================== -->
+
+                <div t-if="doc.note" class="terms-block">
+
+                    <strong>Terms &amp; Conditions:</strong>
+
+                    <div t-field="doc.note"/>
+
+                </div>
+
+            </div>
+
+        </xpath>
+
+    </template>
+
+</odoo>
